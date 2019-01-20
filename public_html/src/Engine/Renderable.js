@@ -27,7 +27,38 @@ Renderable.prototype.draw = function (vpMatrix) {
     var gl = gEngine.Core.getGL();
     this.mShader.activateShader(this.mColor, vpMatrix);  // always activate the shader first!
     this.mShader.loadObjectTransform(this.mXform.getXform());
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 3);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+};
+
+Renderable.prototype.drawSquare = function (vpMatrix) {
+    var gl = gEngine.Core.getGL();
+    this.mShader.activateShader(this.mColor, vpMatrix, "square");  // always activate the shader of Square
+    this.mShader.loadObjectTransform(this.mXform.getXform());
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+};
+
+Renderable.prototype.drawTriangle = function (vpMatrix) {
+    var gl = gEngine.Core.getGL();
+    this.mShader.activateShader(this.mColor, vpMatrix, "triangle");  // always activate the shader of Triangle
+    this.mShader.loadObjectTransform(this.mXform.getXform());
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+};
+
+Renderable.prototype.drawPolygon = function (vpMatrix) {
+    var gl = gEngine.Core.getGL();
+    this.mShader.activateShader(this.mColor, vpMatrix, "polygon");  // always activate the shader of Polygon
+    this.mShader.loadObjectTransform(this.mXform.getXform());
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.drawArrays(gl.TRIANGLES, 2, 3);
+    gl.drawArrays(gl.TRIANGLES, 4, 3);
+};
+
+Renderable.prototype.drawStar = function (vpMatrix) {
+    var gl = gEngine.Core.getGL();
+    this.mShader.activateShader(this.mColor, vpMatrix, "star");  // always activate the shader of Star
+    this.mShader.loadObjectTransform(this.mXform.getXform());
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.drawArrays(gl.TRIANGLES, 3, 3);
 };
 
 Renderable.prototype.getXform = function () { return this.mXform; };

@@ -60,16 +60,12 @@ function SimpleShader(vertexShaderPath, fragmentShaderPath) {
     var glVertexRef = null;
     if (vertexShaderPath === "src/GLSLShaders/SimpleTriVS.glsl") {
         glVertexRef = gEngine.VertexBuffer.getGLTriangleVertexRef();
-        console.log("TRIANGLE VER REF: ", glVertexRef);
     } else if (vertexShaderPath === "src/GLSLShaders/SimplePolVS.glsl") {
         glVertexRef = gEngine.VertexBuffer.getGLPolygonVertexRef();
-        console.log("POLYGON VER REF: ", glVertexRef);
     } else if (vertexShaderPath === "src/GLSLShaders/SimpleStarVS.glsl") {
         glVertexRef = gEngine.VertexBuffer.getGLStarVertexRef();
-        console.log("START VER REF: ", glVertexRef);
     } else {
         glVertexRef = gEngine.VertexBuffer.getGLSquareVertexRef();
-        console.log("SQUARE VER REF: ", glVertexRef);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, glVertexRef);
 
@@ -95,11 +91,20 @@ function SimpleShader(vertexShaderPath, fragmentShaderPath) {
 SimpleShader.prototype.getShader = function () { return this.mCompiledShader; };
 
 // Activate the shader for rendering
-SimpleShader.prototype.activateShader = function (pixelColor, vpMatrix) {
+SimpleShader.prototype.activateShader = function (pixelColor, vpMatrix, type) {
     var gl = gEngine.Core.getGL();
     gl.useProgram(this.mCompiledShader);
     gl.uniformMatrix4fv(this.mViewProjTransform, false, vpMatrix);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gEngine.VertexBuffer.getGLSquareVertexRef());
+    // check what type of shape this is to active the correct buffer
+    if (type === "square") {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gEngine.VertexBuffer.getGLSquareVertexRef());
+    } else if (type === "polygon") {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gEngine.VertexBuffer.getGLPolygonVertexRef());
+    } else if (type === "triangle") {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gEngine.VertexBuffer.getGLTriangleVertexRef());
+    } else if (type === "star") {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gEngine.VertexBuffer.getGLStarVertexRef());
+    }
     gl.vertexAttribPointer(this.mShaderVertexPositionAttribute,
         3,              // each element is a 3-float (x,y.z)
         gl.FLOAT,       // data type is FLOAT

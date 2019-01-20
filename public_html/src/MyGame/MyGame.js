@@ -25,8 +25,9 @@ function MyGame(htmlCanvasID) {
     this.mConstStarColorShader = null;
 
 
-    // variables to save all drawable objects
+    // variables to save all drawable objects and its types
     this.mAllObjects = [];
+    this.mAllObjectsType = [];
 
     // variables for the squares
     this.mRedSq = null;
@@ -83,24 +84,6 @@ MyGame.prototype.initialize = function () {
     this.mRedSq.getXform().setPosition(50, 37.5);
     this.mRedSq.getXform().setSize(1, 1);
 
-    // Initialize the red renderable TRIANGLE
-    this.mTriangle = new Renderable(this.mConstTriangleColorShader);
-    this.mTriangle.setColor([1, 0, 0, 1]);
-    this.mTriangle.getXform().setPosition(80, 100);
-    this.mTriangle.getXform().setSize(5, 5);
-
-    // Initialize the red renderable POLYGON
-    this.mPolygon = new Renderable(this.mConstPolygonColorShader);
-    this.mPolygon.setColor([1, 0, 0, 1]);
-    this.mPolygon.getXform().setPosition(80, 20);
-    this.mPolygon.getXform().setSize(5, 5);
-
-    // Initialize the red renderable START
-    this.mStar = new Renderable(this.mConstStarColorShader);
-    this.mStar.setColor([1, 0, 0, 1]);
-    this.mStar.getXform().setPosition(50, 100);
-    this.mStar.getXform().setSize(5, 5);
-
     gEngine.GameLoop.start(this);
 
     this.mStartTime = Date.now();
@@ -117,18 +100,19 @@ MyGame.prototype.draw = function () {
     this.mCamera.setupViewProjection();
 
     // Draw all existing object created from user
-    for (var i = 0; i < this.mAllObjects.length; i++)
-        this.mAllObjects[i].draw(this.mCamera.getVPMatrix());
-    
+    for (var i = 0; i < this.mAllObjects.length; i++) {
+        if (this.mAllObjectsType[i] == "triangle") {
+            this.mAllObjects[i].drawTriangle(this.mCamera.getVPMatrix());
+        } else if (this.mAllObjectsType[i] == "square") {
+            this.mAllObjects[i].drawSquare(this.mCamera.getVPMatrix());
+        } else if (this.mAllObjectsType[i] == "star") {
+            this.mAllObjects[i].drawStar(this.mCamera.getVPMatrix());
+        } else if (this.mAllObjectsType[i] == "polygon") {
+            this.mAllObjects[i].drawPolygon(this.mCamera.getVPMatrix());
+        }
+    }
     // Draw red square cursor
-    this.mRedSq.draw(this.mCamera.getVPMatrix());
-    // Draw triangle
-    this.mTriangle.draw(this.mCamera.getVPMatrix());
-    // Draw polygon
-    this.mPolygon.draw(this.mCamera.getVPMatrix());
-    // Draw start
-    this.mStar.draw(this.mCamera.getVPMatrix());
-
+    this.mRedSq.drawSquare(this.mCamera.getVPMatrix());
 };
 
 // The Update function, updates the application state. Make sure to _NOT_ draw
@@ -136,7 +120,7 @@ MyGame.prototype.draw = function () {
 MyGame.prototype.update = function () {
     // For this very simple game, let's move the white square and pulse the red
     var xf = this.mRedSq.getXform();
-    var delta = 1;
+    var delta = 0.5;
 
     gUpdateObject(this.mAllObjects.length, this.mDeleteStartTime > 0);
 
@@ -176,29 +160,53 @@ MyGame.prototype.updateDelete = function () {
     for (i = this.mAllObjects.length - 1; i >= 0; i--) {
         if (this.mAllObjects[i].update(t)) {
             this.mAllObjects.splice(i, 1);  // remove one
+            this.mAllObjectsType.splice(i, 1);  // remove its type as well
         }
     }
-
     if (this.mAllObjects.length === 0)
         this.mDeleteStartTime = 0;
 };
 
 MyGame.prototype.createObjectsAt = function (xf) {
-    var n = 10 + 10 * Math.random();
-    var i = 0;
-
+    var triChecker = false;
+    var squareChecker = false;
+    var polygonChecker = false;
+    var starChecker = false;
+    var randShapeGen = Math.floor((Math.random() * 100) + 1);
+    if (randShapeGen >= 55) {
+        triChecker = true;
+    } else if ((randShapeGen < 55) && (randShapeGen >= 10)) {
+        polygonChecker = true;
+        starChecker = true;
+    } else if (randShapeGen < 10) {
+        squareChecker = true;
+    }
     if (this.mAllObjects.length === 0)
         this.mStartTime = Date.now();
 
-    for (i = 0; i < n; i++) {
+    for (var i = 0; i < 2; i++) {
         var x = xf.getXPos() + 10 * (Math.random() - 0.5);
         var y = xf.getYPos() + 10 * (Math.random() - 0.5);
         var size = 1 + 5 * Math.random();
         var rot = Math.random() * 180;
         var creationDelta = Date.now() - this.mStartTime;
-        var obj = new Renderable(this.mConstSquareColorShader, creationDelta);
-        obj.setColor([
-            Math.random(), Math.random(), Math.random(), 1]);
+        var obj;
+        if (triChecker == true) {
+            obj = new Renderable(this.mConstTriangleColorShader, creationDelta);
+            this.mAllObjectsType.push("triangle");
+        } else if (polygonChecker == true) {
+            obj = new Renderable(this.mConstPolygonColorShader, creationDelta);
+            polygonChecker = false;
+            this.mAllObjectsType.push("polygon");
+        } else if (starChecker == true) {
+            obj = new Renderable(this.mConstStarColorShader, creationDelta);
+            starChecker = false;
+            this.mAllObjectsType.push("star");
+        } else if (squareChecker == true) {
+            obj = new Renderable(this.mConstSquareColorShader, creationDelta);
+            this.mAllObjectsType.push("square");
+        }
+        obj.setColor([Math.random(), Math.random(), Math.random(), 1]);
         obj.getXform().setPosition(x, y);
         obj.getXform().setSize(size, size);
         obj.getXform().setRotationInDegree(rot);
